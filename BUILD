@@ -18,10 +18,6 @@ java_library(
   ], exclude=[
     # This depends on org.jboss.marshalling:jboss-marshalling
     'codec/src/main/java/io/netty/handler/codec/marshalling/*.java',
-    # com.jcraft:jzlib
-    'codec/src/main/java/io/netty/handler/codec/compression/JZlib*.java',
-    'codec/src/main/java/io/netty/handler/codec/compression/ZlibUtil.java',
-    'codec/src/main/java/io/netty/handler/codec/compression/ZlibCodecFactory.java',
     # com.github.jponge:lzma-java
     'codec/src/main/java/io/netty/handler/codec/compression/Lzma*.java',
     # com.ning:compress-lzf
@@ -33,7 +29,42 @@ java_library(
     ':buffer',
     ':common',
     ':transport',
+    '//external:jzlib',
     '//external:protobuf_java_lib',
+  ],
+)
+
+java_library(
+  name = 'codec-http',
+  srcs = glob([
+    'codec-http/src/main/**/*.java'
+  ], exclude=[
+    # This depends ssl support in handler.
+    'codec-http/src/main/java/io/netty/handler/codec/http/websocketx/*.java',
+  ]),
+  deps = [
+    ':buffer',
+    ':codec',
+    ':common',
+    ':handler',
+    ':transport',
+    '//external:jzlib',
+  ],
+)
+
+java_library(
+  name = 'codec-http2',
+  srcs = glob([
+    'codec-http2/src/main/**/*.java'
+  ]),
+  deps = [
+    ':buffer',
+    ':codec',
+    ':codec-http',
+    ':common',
+    ':handler',
+    ':transport',
+    '//external:hpack',
   ],
 )
 
@@ -77,10 +108,29 @@ java_library(
     ':codegen_collection',
   ],
   deps = [
-    '//third_party/java/commons-logging',
-    '//third_party/java/javassist',
-    '//third_party/java/log4j',
-    '//third_party/java/slf4j'
+    '//external:apache-commons-logging',
+    '//external:apache-log4j',
+    '//external:javassist',
+    '//external:slf4j'
+  ],
+)
+
+java_library(
+  name = 'handler',
+  srcs = glob([
+    'handler/src/main/**/*.java'
+  ], exclude=[
+    'handler/src/main/java/io/netty/handler/ssl/util/Bouncy*.java',
+    'handler/src/main/java/io/netty/handler/ssl/util/*SelfSign*.java',
+  ]),
+  deps = [
+    ':buffer',
+    ':codec',
+    ':common',
+    ':transport',
+    '//external:jetty-alpn',
+    '//external:jetty-npn',
+    '//external:netty-tcnative',
   ],
 )
 
@@ -112,7 +162,10 @@ java_library(
   exports = [
     'buffer',
     'codec',
+    'codec-http',
+    'codec-http2',
     'common',
+    'handler',
     'resolver',
     'transport',
   ]
