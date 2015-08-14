@@ -75,6 +75,7 @@ py_binary(
     'common/src/main/script/codegen.py'
   ],
   data = [
+    'common/src/main/templates/io/netty/util/collection/KCollections.template',
     'common/src/main/templates/io/netty/util/collection/KObjectMap.template',
     'common/src/main/templates/io/netty/util/collection/KObjectHashMap.template',
   ],
@@ -89,14 +90,19 @@ genrule(
   outs = [
     'ByteObjectHashMap.java',
     'ByteObjectMap.java',
+    'ByteCollections.java',
     'CharObjectHashMap.java',
     'CharObjectMap.java',
+    'CharCollections.java',
     'IntObjectHashMap.java',
     'IntObjectMap.java',
+    'IntCollections.java',
     'LongObjectHashMap.java',
     'LongObjectMap.java',
+    'LongCollections.java',
     'ShortObjectHashMap.java',
     'ShortObjectMap.java',
+    'ShortCollections.java',
   ]
 )
 

@@ -7,8 +7,9 @@ import os.path
 
 
 def convert_template(template_dir, output_dir, primitive, obj):
-    map_types = ["ObjectMap", "ObjectHashMap"]
+    map_types = ["Collections", "ObjectMap", "ObjectHashMap"]
     key_name = primitive.capitalize()
+    keyNumberMethod = primitive + "Value"
     if primitive == "long":
         hashCodeFn = "(int) (key ^ (key >>> 32))"
     else:
@@ -25,6 +26,7 @@ def convert_template(template_dir, output_dir, primitive, obj):
             fp.write(code.replace("@K@", key_name)
                      .replace("@k@", primitive)
                      .replace("@O@", obj)
+                     .replace("@KEY_NUMBER_METHOD@", keyNumberMethod)
                      .replace("@HASH_CODE@", hashCodeFn))
 
 
