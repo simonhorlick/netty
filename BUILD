@@ -114,8 +114,8 @@ java_library(
     ':codegen_collection',
   ],
   deps = [
-    '//external:apache-commons-logging',
-    '//external:apache-log4j',
+    '//external:apache_commons_logging',
+    '//external:apache_log4j',
     '//external:javassist',
     '//external:slf4j'
   ],
@@ -134,9 +134,9 @@ java_library(
     ':codec',
     ':common',
     ':transport',
-    '//external:jetty-alpn',
-    '//external:jetty-npn',
-    '//external:netty-tcnative',
+    '//external:jetty_alpn',
+    '//external:jetty_npn',
+    '//external:netty_tcnative',
   ],
 )
 
