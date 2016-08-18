@@ -378,7 +378,7 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
     /**
      * See {@link #close()}
      */
-    public ChannelFuture close(final ChannelPromise future) {
+    public ChannelFuture close(final ChannelPromise promise) {
         final ChannelHandlerContext ctx = this.ctx;
         ctx.executor().execute(new Runnable() {
             @Override
@@ -386,17 +386,16 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
                 outboundClosed = true;
                 engine.closeOutbound();
                 try {
-                    write(ctx, Unpooled.EMPTY_BUFFER, future);
-                    flush(ctx);
+                    flush(ctx, promise);
                 } catch (Exception e) {
-                    if (!future.tryFailure(e)) {
+                    if (!promise.tryFailure(e)) {
                         logger.warn("{} flush() raised a masked exception.", ctx.channel(), e);
                     }
                 }
             }
         });
 
-        return future;
+        return promise;
     }
 
     /**
@@ -878,8 +877,6 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
         }
 
         if (totalLength > 0) {
-            boolean decoded = false;
-
             // The buffer contains one or more full SSL records.
             // Slice out the whole packet so unwrap will only be called with complete packets.
             // Also directly reset the packetLength. This is needed as unwrap(..) may trigger
@@ -892,13 +889,8 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
             // See https://github.com/netty/netty/issues/1534
 
             in.skipBytes(totalLength);
-            decoded = unwrap(ctx, in, startOffset, totalLength);
 
-            if (!firedChannelRead) {
-                // Check first if firedChannelRead is not set yet as it may have been set in a
-                // previous decode(...) call.
-                firedChannelRead = decoded;
-            }
+            firedChannelRead = unwrap(ctx, in, startOffset, totalLength) || firedChannelRead;
         }
 
         if (nonSslRecord) {
@@ -1246,10 +1238,14 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
         outboundClosed = true;
         engine.closeOutbound();
 
-        ChannelPromise closeNotifyFuture = ctx.newPromise();
-        write(ctx, Unpooled.EMPTY_BUFFER, closeNotifyFuture);
+        ChannelPromise closeNotifyPromise = ctx.newPromise();
+        flush(ctx, closeNotifyPromise);
+        safeClose(ctx, closeNotifyPromise, promise);
+    }
+
+    private void flush(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+        pendingUnencryptedWrites.add(Unpooled.EMPTY_BUFFER, promise);
         flush(ctx);
-        safeClose(ctx, closeNotifyFuture, promise);
     }
 
     @Override
@@ -1402,16 +1398,20 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
         }
 
         final ScheduledFuture<?> timeoutFuture;
-        if (closeNotifyTimeoutMillis > 0) {
-            // Force-close the connection if close_notify is not fully sent in time.
-            timeoutFuture = ctx.executor().schedule(new Runnable() {
-                @Override
-                public void run() {
-                    logger.warn("{} Last write attempt timed out; force-closing the connection.", ctx.channel());
+        if (!flushFuture.isDone()) {
+            if (closeNotifyTimeoutMillis > 0) {
+                // Force-close the connection if close_notify is not fully sent in time.
+                timeoutFuture = ctx.executor().schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        logger.warn("{} Last write attempt timed out; force-closing the connection.", ctx.channel());
 
-                    addCloseListener(ctx.close(ctx.newPromise()), promise);
-                }
-            }, closeNotifyTimeoutMillis, TimeUnit.MILLISECONDS);
+                        addCloseListener(ctx.close(ctx.newPromise()), promise);
+                    }
+                }, closeNotifyTimeoutMillis, TimeUnit.MILLISECONDS);
+            } else {
+                timeoutFuture = null;
+            }
         } else {
             timeoutFuture = null;
         }
