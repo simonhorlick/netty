@@ -42,9 +42,9 @@ java_library(
         ":buffer",
         ":common",
         ":transport",
+        "@com_google_protobuf//:protobuf_java",
+        "@com_google_protobuf//:protobuf_javanano",
         "@com_jcraft_jzlib//jar",
-        "@protobuf//:protobuf_java",
-        "@protobuf//:protobuf_javanano",
     ],
 )
 
