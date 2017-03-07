@@ -53,6 +53,10 @@ java_library(
     srcs = glob([
         "codec-http/src/main/**/*.java",
     ]),
+    javacopts = [
+        # Suppress: HttpObjectDecoder.java:226: error: [FallThrough] Switch case may fall through
+        "-Xep:FallThrough:WARN",
+    ],
     deps = [
         ":buffer",
         ":codec",
