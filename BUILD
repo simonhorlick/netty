@@ -123,6 +123,10 @@ java_library(
     ]) + [
         ":codegen_collection",
     ],
+    javacopts = [
+        # Suppress: StringUtil.java:275: error: [FallThrough] Switch case may fall through
+        "-Xep:FallThrough:WARN",
+    ],
     deps = [
         "@apache_commons_logging//jar",
         "@javassist//jar",
