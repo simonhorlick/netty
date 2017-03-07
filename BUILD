@@ -53,6 +53,10 @@ java_library(
     srcs = glob([
         "codec-http/src/main/**/*.java",
     ]),
+    javacopts = [
+        # Suppress: HttpObjectDecoder.java:226: error: [FallThrough] Switch case may fall through
+        "-Xep:FallThrough:WARN",
+    ],
     deps = [
         ":buffer",
         ":codec",
@@ -123,6 +127,10 @@ java_library(
     ]) + [
         ":codegen_collection",
     ],
+    javacopts = [
+        # Suppress: StringUtil.java:275: error: [FallThrough] Switch case may fall through
+        "-Xep:FallThrough:WARN",
+    ],
     deps = [
         "@apache_commons_logging//jar",
         "@javassist//jar",
@@ -188,6 +196,9 @@ java_library(
     srcs = glob([
         "transport-native-epoll/src/main/**/*.java",
     ]),
+    javacopts = [
+        "-extra_checks:off",
+    ],
     deps = [
         ":buffer",
         ":common",
