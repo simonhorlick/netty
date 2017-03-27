@@ -68,6 +68,40 @@ java_library(
 )
 
 java_library(
+    name = "handler-proxy",
+    srcs = glob([
+        "handler-proxy/src/main/java/**/*.java",
+    ]),
+    deps = [
+        ":buffer",
+        ":codec",
+        ":codec-http",
+        ":codec-socks",
+        ":common",
+        ":transport",
+    ],
+)
+
+java_library(
+    name = "codec-socks",
+    srcs = glob([
+        "codec-socks/src/main/**/*.java",
+    ]),
+    javacopts = [
+        "-Xep:FallThrough:WARN",
+        "-Xep:MissingCasesInEnumSwitch:WARN",
+    ],
+    deps = [
+        ":buffer",
+        ":codec",
+        ":codec-http",
+        ":common",
+        ":handler",
+        ":transport",
+    ],
+)
+
+java_library(
     name = "codec-http2",
     srcs = glob([
         "codec-http2/src/main/**/*.java",
@@ -214,8 +248,10 @@ java_library(
         "codec",
         "codec-http",
         "codec-http2",
+        "codec-socks",
         "common",
         "handler",
+        "handler-proxy",
         "resolver",
         "transport",
     ],
